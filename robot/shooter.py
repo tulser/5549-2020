@@ -1,6 +1,8 @@
 """ shooter functions """
 # importing packages
 import wpilib
+from robot.shared import *
+import math
 from ctre import *
 
 class Shooter:
@@ -17,27 +19,16 @@ class Shooter:
 
         # setting shooter rpm
         # need to move to always check
-        self.topShooterRPM = self.topShooter1Encoder.getQuadraturePosition()    # this is not actually rpm
-        self.bottomShooterRPM = self.bottomShooter1Encoder.getQuadraturePosition()  # this is not actually rpm
+        self.topShooterRPM = self.topShooter1Encoder.getSelectedSensorPosition()    # this is not actually rpm
+        self.bottomShooterRPM = self.bottomShooter1Encoder.getSelectedSensorPosition()  # this is not actually rpm
 
-    def shootFar(self):
-        # shoot the ball for set far distance
-        self.highrpm = 0 # add later
-        self.initializeShooter(self.highrpm)
+    def shootAuto(self, dist, force=False):
+        if (dist < (TARGETHEIGHT-TARGETMARGINS) or dist > (TARGETHEIGHT-TARGETMARGINS)) and not force:
+            # Recommended to setup networktables feedback
+            return
 
-    def shootMid(self):
-        # shoot the ball for set medium distance
-        self.midrpm = 0 # add later
-        self.initializeShooter(self.midrpm)
-
-    def shootShort(self):
-        # shoot the ball for set short distance
-        self.lowrpm = 0 # add later
-        self.initializeShooter(self.lowrpm)
-
-    def shootAuto(self, distance):
         # automatically shoot balls given distance
-        pass
+        return math.sqrt(-9.81*math.pow(dist, 2)/(TARGETHEIGHT-dist))
 
     def initializeShooter(self, rpm):
         # initializes shooter and moves piston
