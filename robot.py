@@ -40,9 +40,6 @@ class Scorpio(wpilib.TimedRobot):
     def robotInit(self):
         """ function that is run at the beginning of the match """
 
-        # init joysticks
-        global LeftJoystick, RightJoystick, Joystick
-
         LeftJoystick = wpilib.Joystick(1)
         RightJoystick = wpilib.Joystick(2)
         Joystick = wpilib.Joystick(3)  # xbox
