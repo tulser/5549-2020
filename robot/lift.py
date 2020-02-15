@@ -3,18 +3,24 @@
 import wpilib
 from ctre import *
 
-class Lift:
-    def __init__(self):
-        self.liftMotor = WPI_VictorSPX(15)
+__all__ = ["Lift"]
 
-    def dropDown(self):
+class Lift:
+
+    __liftMotor = WPI_VictorSPX(15)
+
+    @classmethod
+    def dropDown(cls):
         # drops the lift to down position
         pass
 
-    def liftUp(self):
+    @classmethod
+    def liftUp(cls):
         # moves the lift to up position
         pass
 
-    def runMotor(self, power):
+    @classmethod
+    def runMotor(cls, power, *args):
         # runs motor at set power
-        self.liftMotor.set(power)
+        cls.__liftMotor.set(power, *args)
+        return

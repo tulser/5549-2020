@@ -1,19 +1,23 @@
 """ intake functions """
 # importing packages
-import wpilib
 from ctre import *
 
+__all__ = ["Intake"]
+
+INTAKESCALING = 0.50
+
 class Intake:
-    def __init__(self):
-        # intake motor
-        self.intakeMotor = WPI_VictorSPX(9)
 
-    def takeIn(self):
+    __intakeMotor = WPI_VictorSPX(9)
+
+    @classmethod
+    def takeIn(cls):
         # taking in the ball at set scaling
-        scaling = 0.50
-        self.intakeMotor.set(scaling)
+        cls.__intakeMotor.set(INTAKESCALING)
+        return
 
-    def eject(self):
+    @classmethod
+    def eject(cls):
         # ejecting ball at set scaling
-        scaling = 0.50
-        self.intakeMotor.set(-scaling)
+        cls.__intakeMotor.set(-INTAKESCALING)
+        return

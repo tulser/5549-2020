@@ -1,23 +1,24 @@
 """ vision functions """
 # importing packages
-import wpilib
 from robot.shared import *
-from networktables import NetworkTables
+from networktables import NetworkTables, NetworkTable
 import math
 
+__all__ = ["Vision"]
 
 class Vision:
 
-    def __init__(self):
-        self.limelight = NetworkTables.getTable("limelight")
+    __limelight: NetworkTable = NetworkTables.getTable("limelight")
 
-    def alignTarget(self) -> float:
-        horizontalTargetAngle = self.limelight.getNumber('tx', -1)
+    @classmethod
+    def getTargetAngle(cls) -> float:
+        horizontalTargetAngle = cls.__limelight.getNumber('tx', -1)
 
         return math.radians(horizontalTargetAngle)*ROBOTRADIUS*0.95 #0.95 is a coefficient to prevent overshoot.
 
-    def getDistance(self) -> float:
-        verticalTargetAngle = self.limelight.getNumber('ty', -1)  # finds vertical angle to target
+    @classmethod
+    def getDistance(cls) -> float:
+        verticalTargetAngle = cls.__limelight.getNumber('ty', -1)  # finds vertical angle to target
         if verticalTargetAngle is -1: return -1
 
         # finds distance to target using limelight

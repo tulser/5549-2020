@@ -2,8 +2,6 @@
 Infinite Recharge - Scorpio from FRC 5549: Gryphon Robotics
 """
 # import packages
-import wpilib
-from ctre import *
 from networktables import NetworkTables
 from robotpy_ext.control.toggle import Toggle
 from robot import *
@@ -38,29 +36,26 @@ Motor Mapping
 
 class Scorpio(wpilib.TimedRobot):
 
+    bstatusDriveModePrev = False
+    bstatusGearPrev = False
+
     def robotInit(self):
         """ function that is run at the beginning of the match """
 
-        # Button for Switching Between Arcade and Tank Drive
-        self.driveButtonStatus = Toggle(self.leftJoystick, 2)
+        LeftJoystick = wpilib.Joystick(1)
+        RightJoystick = wpilib.Joystick(2)
+        Joystick = wpilib.Joystick(3) #xbox
 
-        # Driving Button Status
-        self.driveButtonStatus = Toggle(self.leftJoystick, 2)
+        # Button for Switching Between Arcade and Tank Drive
+        self.driveButtonStatus = Toggle(LeftJoystick, 2)
 
         # Button for Gear Status
-        self.gearButtonStatus = Toggle(self.joystick, 1)
+        self.gearButtonStatus = Toggle(Joystick, 1)
 
         # init networktables
         NetworkTables.initialize(server="10.55.49.2")
 
         # init variables which have wpilib objects
-        self.MODdrive = Drive()
-        self.MODindexer = Indexer()
-        self.MODintake = Intake()
-        self.MODlift = Lift()
-        self.MODshooter = Shooter()
-        self.MODdashboard = Dashboard()
-        self.MODvision = Vision()
 
     def autonomousInit(self):
         ''' function that is run at the beginning of the autonomous phase '''
@@ -76,22 +71,16 @@ class Scorpio(wpilib.TimedRobot):
 
     def teleopPeriodic(self):
         ''' function that is run periodically during the tele-operated phase '''
-        # get joystick values
-        driveLeft = self.leftJoystick.getRawAxis(1)
-        driveRight = self.rightJoystick.getRawAxis(1)
-        driveRotate = self.leftJoystick.getRawAxis(2)
 
         # Changing Between Arcade and Tank Drive
         if self.driveButtonStatus.get():
-            self.drive.tankDrive(driveLeft, driveRight)
+            Drive.tankDrive()
         else:
-            self.drive.arcadeDrive(driveLeft, driveRotate)
+            Drive.arcadeDrive()
 
         # Changing Drive Train Gears
-        self.drive.changeGear(self.gearButtonStatus.get())
-
-        'Smart Dashboard'
-        self.dashboardGearStatus(self.DoubleSolenoidOne.get())
+        if self.bstatusGearPrev != Joystick.getRawButton(1): # guards against
+            Drive.alternateGear() # causes the gear to alternate
 
 
 if __name__ == '__main__':
