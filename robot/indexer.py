@@ -7,7 +7,16 @@ __all__ = ["Indexer"]
 
 class Indexer:
 
-    __indexer = SpeedControllerGroup_M(WPI_VictorSPX(10), WPI_VictorSPX(11), WPI_VictorSPX(12), WPI_VictorSPX(13), WPI_VictorSPX(14))
+    __indexer: SpeedControllerGroup_M = None
+
+    @classmethod
+    def __call__(cls):
+        cls.init()
+
+    @classmethod
+    def init(cls):
+        cls. __indexer = SpeedControllerGroup_M(WPI_VictorSPX(10), WPI_VictorSPX(11), WPI_VictorSPX(12), WPI_VictorSPX(13),
+                                           WPI_VictorSPX(14))
 
     @classmethod
     def forward(cls):

@@ -8,13 +8,21 @@ __all__ = ["Vision"]
 
 class Vision:
 
-    __limelight: NetworkTable = NetworkTables.getTable("limelight")
+    __limelight: NetworkTable = None
+
+    @classmethod
+    def __call__(cls):
+        cls.init()
+
+    @classmethod
+    def init(cls):
+        cls.__limelight = NetworkTables.getTable("limelight")
 
     @classmethod
     def getTargetAngle(cls) -> float:
         horizontalTargetAngle = cls.__limelight.getNumber('tx', -1)
 
-        return math.radians(horizontalTargetAngle)*ROBOTRADIUS*0.95 #0.95 is a coefficient to prevent overshoot.
+        return math.radians(horizontalTargetAngle)*0.95 #0.95 is a coefficient to prevent overshoot.
 
     @classmethod
     def getDistance(cls) -> float:
@@ -22,4 +30,4 @@ class Vision:
         if verticalTargetAngle is -1: return -1
 
         # finds distance to target using limelight
-        return (TARGETHEIGHT - CAMHEIGHTMOUNT) / math.tan(math.radians(CAMANGLEMOUNT + verticalTargetAngle)) + CAMOFFSETMOUNT
+        return (TARGETHEIGHT - (CAMHEIGHTMOUNT)) / math.tan(math.radians(CAMANGLEMOUNT + verticalTargetAngle)) + CAMOFFSETMOUNT

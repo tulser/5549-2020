@@ -33,29 +33,36 @@ Motor Mapping
 15: liftMotor1
 """
 
-
 class Scorpio(wpilib.TimedRobot):
 
-    bstatusDriveModePrev = False
     bstatusGearPrev = False
 
     def robotInit(self):
         """ function that is run at the beginning of the match """
 
+        # init joysticks
+        global LeftJoystick, RightJoystick, Joystick
+
         LeftJoystick = wpilib.Joystick(1)
         RightJoystick = wpilib.Joystick(2)
-        Joystick = wpilib.Joystick(3) #xbox
+        Joystick = wpilib.Joystick(3)  # xbox
 
         # Button for Switching Between Arcade and Tank Drive
         self.driveButtonStatus = Toggle(LeftJoystick, 2)
 
-        # Button for Gear Status
-        self.gearButtonStatus = Toggle(Joystick, 1)
-
         # init networktables
         NetworkTables.initialize(server="10.55.49.2")
 
-        # init variables which have wpilib objects
+        # init networktables dependent modules
+        Vision.init()
+        Dashboard.init()
+
+        # init motor modules
+        Drive.init()
+        Indexer.init()
+        Intake.init()
+        Lift.init()
+        Shooter.init()
 
     def autonomousInit(self):
         ''' function that is run at the beginning of the autonomous phase '''

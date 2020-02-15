@@ -1,13 +1,20 @@
 """"" lift functions """
 # importing packages
-import wpilib
 from ctre import *
 
 __all__ = ["Lift"]
 
 class Lift:
 
-    __liftMotor = WPI_VictorSPX(15)
+    __liftMotor: WPI_VictorSPX = None
+
+    @classmethod
+    def __call__(cls):
+        cls.init()
+
+    @classmethod
+    def init(cls):
+        cls.__liftMotor = WPI_VictorSPX(15)
 
     @classmethod
     def dropDown(cls):

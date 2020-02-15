@@ -12,15 +12,28 @@ DRIVESCALING = 0.65
 
 class Drive:
 
-    # drive train motor groups
-    _leftDrive = wpilib.SpeedControllerGroup(WPI_TalonSRX(1), WPI_TalonSRX(2))
-    _rightDrive = wpilib.SpeedControllerGroup(WPI_TalonSRX(3), WPI_TalonSRX(4))
+    _leftDrive: wpilib.SpeedControllerGroup = None
+    _rightDrive: wpilib.SpeedControllerGroup = None
 
-    # setting up differential drive
-    __fullDrive = DifferentialDrive(_leftDrive, _rightDrive)
+    __fullDrive: DifferentialDrive = None
 
-    # pneumatic solenoid for gear shifting
-    _gearSolenoid = wpilib.DoubleSolenoid(0, 1)
+    _gearSolenoid: wpilib.DoubleSolenoid = None
+
+    @classmethod
+    def __call__(cls):
+        cls.init()
+
+    @classmethod
+    def init(cls):
+        # drive train motor groups
+        cls._leftDrive = wpilib.SpeedControllerGroup(WPI_TalonSRX(1), WPI_TalonSRX(2))
+        cls._rightDrive = wpilib.SpeedControllerGroup(WPI_TalonSRX(3), WPI_TalonSRX(4))
+
+        # setting up differential drive
+        cls.__fullDrive = DifferentialDrive(cls._leftDrive, cls._rightDrive)
+
+        # pneumatic solenoid for gear shifting
+        cls._gearSolenoid = wpilib.DoubleSolenoid(0, 1)
 
     @classmethod
     def manualTurn(cls, angle):

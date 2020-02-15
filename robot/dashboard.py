@@ -7,7 +7,15 @@ __all__ = ["Dashboard"]
 
 class Dashboard:
 
-    __dashboard: NetworkTable = NetworkTables.getTable('SmartDashboard')
+    __dashboard: NetworkTable = None
+
+    @classmethod
+    def __call__(cls):
+        cls.init()
+
+    @classmethod
+    def init(cls):
+        cls.__dashboard = NetworkTables.getTable('SmartDashboard')
 
     @classmethod
     def setDashboardGearStatus(cls):
