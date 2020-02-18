@@ -5,10 +5,11 @@ import numpy as np
 
 __all__ = ["SpeedControllerGroup_M"]
 
+
 class SpeedControllerGroup_M(wpilib.SpeedControllerGroup):
 
     def __init__(self, *args):
-        super().__init__(args[0], args[1:])
+        super().__init__(args[0], *args[1:])
         self._driveLen = len(args)
         self.__driveCoeff = np.ones(self._driveLen)
 
@@ -23,12 +24,22 @@ class SpeedControllerGroup_M(wpilib.SpeedControllerGroup):
         self.__driveCoeff[index] = term
         return
 
-    def set(self, speed: float, *args):
+    def setPure(self, speed: float, *args):
+        nspeed = -speed if self.isInverted else speed
         for index in range(self._driveLen):
             if isinstance(self.speedControllers[index], ctre.TalonSRX):
-                self.speedControllers[index].set((-speed if self.isInverted else speed)*self.__driveCoeff[index], args)
+                self.speedControllers[index].set(nspeed, *args)
             else:
-                self.speedControllers[index].set((-speed if self.isInverted else speed)*self.__driveCoeff[index])
+                self.speedControllers[index].set(nspeed)
+        return
+
+    def set(self, speed: float, *args):
+        nspeed = -speed if self.isInverted else speed
+        for index in range(self._driveLen):
+            if isinstance(self.speedControllers[index], ctre.TalonSRX):
+                self.speedControllers[index].set(nspeed*self.__driveCoeff[index], *args)
+            else:
+                self.speedControllers[index].set(nspeed*self.__driveCoeff[index])
         return
 
     def initSendable(self, builder):

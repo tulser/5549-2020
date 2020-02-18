@@ -37,12 +37,12 @@ class Drive:
 
     @classmethod
     def manualTurn(cls, angle):
-        # turn robot to specified angle values using navx
+        raise NotImplementedError
         pass
 
     @classmethod
     def autoTurn(cls):
-        # turn robot to angle values returned from Vision.getTargetAngle using navx
+        raise NotImplementedError
         pass
 
     @classmethod
@@ -56,6 +56,11 @@ class Drive:
         # switches gear mode
         cls._gearSolenoid.set(toggle % 3)
         Dashboard.setDashboardGearStatus()
+        return
+
+    @classmethod
+    def stopGear(cls):
+        cls._gearSolenoid.set(0)
         return
 
     @classmethod

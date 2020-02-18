@@ -33,9 +33,15 @@ Motor Mapping
 15: liftMotor1
 """
 
+
 class Scorpio(wpilib.TimedRobot):
 
-    bstatusGearPrev = False
+    gearButtonStatusPrev: bool = False  # variable for storing previous joystick states.
+
+    # I can't remember how python handles variable initialization or optimizes variables in general but I'm putting vars
+    # for periodics here in case it handles variables like C/++ so I can prevent redeclaration and optimize the code.
+    gearButtonStatus: bool = None
+    driveButtonToggle: Toggle = None  # left joy, button 2 toggle.
 
     def robotInit(self):
         """ function that is run at the beginning of the match """
@@ -47,7 +53,7 @@ class Scorpio(wpilib.TimedRobot):
         Joystick = wpilib.Joystick(3)  # xbox
 
         # Button for Switching Between Arcade and Tank Drive
-        self.driveButtonStatus = Toggle(LeftJoystick, 2)
+        self.driveButtonToggle = Toggle(LeftJoystick, 2)
 
         # init networktables
         NetworkTables.initialize(server="10.55.49.2")
@@ -78,15 +84,21 @@ class Scorpio(wpilib.TimedRobot):
     def teleopPeriodic(self):
         ''' function that is run periodically during the tele-operated phase '''
 
+        # get values at start of the loop
+        self.gearButtonStatus = Joystick.getRawButton(1)
+
         # Changing Between Arcade and Tank Drive
-        if self.driveButtonStatus.get():
+        if self.driveButtonToggle.get():
             Drive.tankDrive()
         else:
             Drive.arcadeDrive()
 
         # Changing Drive Train Gears
-        if self.bstatusGearPrev != Joystick.getRawButton(1): # guards against
-            Drive.alternateGear() # causes the gear to alternate
+        if self.gearButtonStatusPrev and not self.gearButtonStatus:
+            Drive.alternateGear()
+
+        # finalize the loop by applying the joystick state of this loop to be carried forward as the previous.
+        self.gearButtonStatusPrev = self.gearButtonStatus
 
 
 if __name__ == '__main__':
