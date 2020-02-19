@@ -34,7 +34,7 @@ Motor Mapping
 """
 
 
-class Scorpio(wpilib.TimedRobot):
+class Manticore(wpilib.TimedRobot):
 
     gearButtonStatusPrev: bool = False  # variable for storing previous joystick states.
 
@@ -103,4 +103,4 @@ class Scorpio(wpilib.TimedRobot):
 
 if __name__ == '__main__':
     ''' running the entire robot program '''
-    wpilib.run(Scorpio)
+    wpilib.run(Manticore)
