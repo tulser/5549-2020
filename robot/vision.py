@@ -1,17 +1,18 @@
 """ vision functions """
 # importing packages
 from robot.shared import *
-from networktables import NetworkTables, NetworkTable
+from networktables import NetworkTables
 import math
 
 __all__ = ["Vision"]
 
+
 class Vision:
 
-    __limelight: NetworkTable = None
+    __limelight = None
 
     @classmethod
-    def __call__(cls):
+    def __init__(cls):
         cls.init()
 
     @classmethod
@@ -19,15 +20,16 @@ class Vision:
         cls.__limelight = NetworkTables.getTable("limelight")
 
     @classmethod
-    def getTargetAngle(cls) -> float:
+    def getTargetAngle(cls):
         horizontalTargetAngle = cls.__limelight.getNumber('tx', -1)
+        if horizontalTargetAngle is -1: return -1
 
-        return math.radians(horizontalTargetAngle)*0.95 #0.95 is a coefficient to prevent overshoot.
+        return math.radians(horizontalTargetAngle)*0.99  # 0.99 is a coefficient to prevent overshoot.
 
     @classmethod
-    def getDistance(cls) -> float:
+    def getDistance(cls):
         verticalTargetAngle = cls.__limelight.getNumber('ty', -1)  # finds vertical angle to target
         if verticalTargetAngle is -1: return -1
 
         # finds distance to target using limelight
-        return (TARGETHEIGHT - (CAMHEIGHTMOUNT)) / math.tan(math.radians(CAMANGLEMOUNT + verticalTargetAngle)) + CAMOFFSETMOUNT
+        return (TARGETHEIGHT - CAMHEIGHTMOUNT) / math.tan(math.radians(CAMANGLEMOUNT + verticalTargetAngle)) + CAMOFFSETMOUNT

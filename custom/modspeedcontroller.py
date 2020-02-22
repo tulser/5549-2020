@@ -1,4 +1,4 @@
-import wpilib
+from wpilib import SpeedControllerGroup
 import ctre
 
 import numpy as np
@@ -6,7 +6,7 @@ import numpy as np
 __all__ = ["SpeedControllerGroup_M"]
 
 
-class SpeedControllerGroup_M(wpilib.SpeedControllerGroup):
+class SpeedControllerGroup_M(SpeedControllerGroup):
 
     def __init__(self, *args):
         super().__init__(args[0], *args[1:])

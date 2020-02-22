@@ -59,15 +59,14 @@ class Manticore(wpilib.TimedRobot):
         NetworkTables.initialize(server="10.55.49.2")
 
         # init networktables dependent modules
-        Vision.init()
-        Dashboard.init()
+        Vision()
+        Dashboard()
 
         # init motor modules
-        Drive.init()
-        Indexer.init()
-        Intake.init()
-        Lift.init()
-        Shooter.init()
+        Drive()
+        Intake()
+        Lift()
+        Shooter()
 
     def autonomousInit(self):
         ''' function that is run at the beginning of the autonomous phase '''
@@ -85,20 +84,20 @@ class Manticore(wpilib.TimedRobot):
         ''' function that is run periodically during the tele-operated phase '''
 
         # get values at start of the loop
-        self.gearButtonStatus = Joystick.getRawButton(1)
+        Manticore.gearButtonStatus = Joystick.getRawButton(1)
 
         # Changing Between Arcade and Tank Drive
-        if self.driveButtonToggle.get():
+        if Manticore.driveButtonToggle.get():
             Drive.tankDrive()
         else:
             Drive.arcadeDrive()
 
         # Changing Drive Train Gears
-        if self.gearButtonStatusPrev and not self.gearButtonStatus:
+        if Manticore.gearButtonStatusPrev and not Manticore.gearButtonStatus:
             Drive.alternateGear()
 
         # finalize the loop by applying the joystick state of this loop to be carried forward as the previous.
-        self.gearButtonStatusPrev = self.gearButtonStatus
+        Manticore.gearButtonStatusPrev = self.gearButtonStatus
 
 
 if __name__ == '__main__':

@@ -1,16 +1,16 @@
 """ dashboard functions """
 # importing packages
-from robot.drive import Drive
-from networktables import NetworkTables, NetworkTable
+from networktables import NetworkTables
 
 __all__ = ["Dashboard"]
 
+
 class Dashboard:
 
-    __dashboard: NetworkTable = None
+    __dashboard = None
 
     @classmethod
-    def __call__(cls):
+    def __init__(cls):
         cls.init()
 
     @classmethod
@@ -18,12 +18,15 @@ class Dashboard:
         cls.__dashboard = NetworkTables.getTable('SmartDashboard')
 
     @classmethod
-    def setDashboardGearStatus(cls):
+    def setDashboardGearStatus(cls, status):
         # display high/low gear to dashboard
-        if Drive._gearSolenoid.get() is 1:
-            cls.__dashboard.putString("Gear Shift", "HIGH Gear")
-        elif Drive._gearSolenoid.get() is 2:
-            cls.__dashboard.putString("Gear Shift", "LOW Gear")
+        if status is 0:
+            message = "Gear OFF"
+        elif status is 1:
+            message = "HIGH Gear"
+        elif status is 2:
+            message = "LOW Gear"
         else:
-            cls.__dashboard.putString("Gear Shift", "Gear OFF")
+            message = "Unknown Gear"
+        cls.__dashboard.putString("Gear Shift", message)
         return

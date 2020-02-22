@@ -1,20 +1,26 @@
 """"" lift functions """
 # importing packages
 from ctre import *
+from wpilib import Compressor, DoubleSolenoid
 
 __all__ = ["Lift"]
+
 
 class Lift:
 
     __liftMotor: WPI_VictorSPX = None
+    __compressor: Compressor = None
+    __solenoid: DoubleSolenoid = None
 
     @classmethod
-    def __call__(cls):
+    def __init__(cls):
         cls.init()
 
     @classmethod
     def init(cls):
-        cls.__liftMotor = WPI_VictorSPX(15)
+        cls.__liftMotor = WPI_VictorSPX(13)
+        cls.__compressor = Compressor(0)
+        cls.__solenoid = DoubleSolenoid(2, 3)
 
     @classmethod
     def dropDown(cls):
@@ -27,7 +33,7 @@ class Lift:
         pass
 
     @classmethod
-    def runMotor(cls, power, *args):
+    def manualRun(cls, power, *args):
         # runs motor at set power
         cls.__liftMotor.set(power, *args)
         return
