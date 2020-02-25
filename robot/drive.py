@@ -4,7 +4,7 @@ from wpilib import SpeedControllerGroup, DoubleSolenoid
 from navx import AHRS
 from math import fabs, ceil, log2
 from sys import maxsize
-from robot import LeftJoystick, RightJoystick, Vision, Dashboard
+from robot import *
 from ctre import *
 from wpilib.drive import DifferentialDrive
 
@@ -63,9 +63,9 @@ class Drive:
         pass
 
     @classmethod
-    def AuxAutoSmoothTurn(cls):  # Align to target w/o navx
+    def auxAutoSmoothTurn(cls):  # Align to target w/o navx, don't recommend using
         angle = Vision.getTargetAngle()
-        intlength = log2(maxsize * 2 + 1)
+        intlength = int(log2(maxsize * 2 + 1))
         sign = ceil(angle) >> (intlength-1)
         reqangle = fabs(angle)
         while reqangle >= 0.1:  # just proportional smoothing
@@ -77,7 +77,7 @@ class Drive:
         return
 
     @classmethod
-    def autoSmoothTurn(cls):
+    def autoSmoothTurn(cls):  # Align w/ navx
         cls.__navx.reset()
         angle = Vision.getTargetAngle()
         diff = 4
@@ -96,7 +96,7 @@ class Drive:
         return
 
     @classmethod
-    def changeGear(cls, gear: DoubleSolenoid.Value=0):
+    def changeGear(cls, gear: DoubleSolenoid.Value = 0):
         # switches gear mode
         mode = gear % 3
         cls._gearSolenoid.set(mode)

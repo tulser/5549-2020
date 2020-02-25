@@ -22,14 +22,14 @@ class Vision:
     @classmethod
     def getTargetAngle(cls):
         horizontalTargetAngle = cls.__limelight.getNumber('tx', -1)
-        if horizontalTargetAngle is -1: return -1
+        if horizontalTargetAngle == -1: return -1
 
         return math.radians(horizontalTargetAngle)*0.99  # 0.99 is a coefficient to prevent overshoot.
 
     @classmethod
     def getDistance(cls):
         verticalTargetAngle = cls.__limelight.getNumber('ty', -1)  # finds vertical angle to target
-        if verticalTargetAngle is -1: return -1
+        if verticalTargetAngle == -1: return -1
 
         # finds distance to target using limelight
         return (TARGETHEIGHT - CAMHEIGHTMOUNT) / math.tan(math.radians(CAMANGLEMOUNT + verticalTargetAngle)) + CAMOFFSETMOUNT

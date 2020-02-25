@@ -37,16 +37,13 @@ Motor Mapping
 class Manticore(wpilib.TimedRobot):
 
     gearButtonStatusPrev: bool = False  # variable for storing previous joystick states.
-
-    # I can't remember how python handles variable initialization or optimizes variables in general but I'm putting vars
-    # for periodics here in case it handles variables like C/++ so I can prevent redeclaration and optimize the code.
-    gearButtonStatus: bool = None
     driveButtonToggle: Toggle = None  # left joy, button 2 toggle.
+    liftButtonToggle: Toggle = None
 
     def robotInit(self):
         """ function that is run at the beginning of the match """
 
-        global LeftJoystick, RightJoystick, Joystick
+        global LeftJoystick, RightJoystick, XBox
 
         LeftJoystick = wpilib.Joystick(1)
         RightJoystick = wpilib.Joystick(2)
@@ -54,6 +51,7 @@ class Manticore(wpilib.TimedRobot):
 
         # Button for Switching Between Arcade and Tank Drive
         self.driveButtonToggle = Toggle(LeftJoystick, 2)
+        self.liftButtonToggle = Toggle(XBox, 8)
 
         # init networktables
         NetworkTables.initialize(server="10.55.49.2")
@@ -84,20 +82,25 @@ class Manticore(wpilib.TimedRobot):
         ''' function that is run periodically during the tele-operated phase '''
 
         # get values at start of the loop
-        Manticore.gearButtonStatus = Joystick.getRawButton(1)
+        gearButtonStatus = RightJoystick.getRawButton(1)
 
         # Changing Between Arcade and Tank Drive
-        if Manticore.driveButtonToggle.get():
+        if self.driveButtonToggle.get():
             Drive.tankDrive()
         else:
             Drive.arcadeDrive()
 
         # Changing Drive Train Gears
-        if Manticore.gearButtonStatusPrev and not Manticore.gearButtonStatus:
+        if self.gearButtonStatusPrev and not gearButtonStatus:
             Drive.alternateGear()
 
+        if self.liftButtonToggle.get():
+            Lift.liftUp()
+        else:
+            Lift.dropDown()
+
         # finalize the loop by applying the joystick state of this loop to be carried forward as the previous.
-        Manticore.gearButtonStatusPrev = self.gearButtonStatus
+        self.gearButtonStatusPrev = gearButtonStatus
 
 
 if __name__ == '__main__':

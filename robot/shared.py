@@ -15,4 +15,4 @@ TARGETMARGINS = 0.2921  # maximum vertical margins for ball to go into target.
 # shared objects
 RightJoystick: wpilib.Joystick = None
 LeftJoystick: wpilib.Joystick = None
-Joystick: wpilib.Joystick = None
+XBox: wpilib.Joystick = None

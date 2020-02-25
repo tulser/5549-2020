@@ -1,7 +1,6 @@
 """ shooter functions """
 # importing packages
-from robot import Vision
-from robot.shared import *
+from robot import *
 from math import fabs, sqrt, pow
 from ctre import *
 from wpilib import SpeedControllerGroup
@@ -83,7 +82,7 @@ class PIDManager(Thread):
         self.__threshold = threshold
         self.active = True
         self.enabled = True
-        if not self.isAlive():
+        if not self.is_alive():
             self.start()
 
     def run(self):
@@ -113,8 +112,7 @@ class PIDManager(Thread):
         self.reset()
 
     def reset(self, newsetpoint: float = None):
-        if newsetpoint is None:
-            self.__setpoint = 0
+        self.__setpoint = 0 if newsetpoint is None else newsetpoint
 
         self.__integralsum = 0
         self.__pasterr = 0

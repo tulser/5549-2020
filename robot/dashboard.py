@@ -21,12 +21,40 @@ class Dashboard:
     def setDashboardGearStatus(cls, status):
         # display high/low gear to dashboard
         if status is 0:
-            message = "Gear OFF"
+            message = "OFF"
         elif status is 1:
-            message = "HIGH Gear"
+            message = "HIGH"
         elif status is 2:
-            message = "LOW Gear"
+            message = "LOW"
         else:
-            message = "Unknown Gear"
+            message = "UNKNOWN"
         cls.__dashboard.putString("Gear Shift", message)
+        return
+
+    @classmethod
+    def setLiftStatus(cls, status):
+        # display high/low gear to dashboard
+        if status is 0:
+            message = "INACTIVE"
+        elif status is 1:
+            message = "ACTIVE"
+        elif status is 2:
+            message = "YOUR CONTROL"
+        else:
+            message = "UNKNOWN"
+        cls.__dashboard.putString("Lift Status", message)
+        return
+
+    @classmethod
+    def setCompressorStatus(cls, status):
+        # display high/low gear to dashboard
+        if status is 0:
+            message = "OFF"
+        elif status is 1:
+            message = "INACTIVE"
+        elif status is 2:
+            message = "ACTIVE"
+        else:
+            message = "UNKNOWN"
+        cls.__dashboard.putString("Compressor Status", message)
         return
