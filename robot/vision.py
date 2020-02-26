@@ -6,6 +6,11 @@ import math
 
 __all__ = ["Vision"]
 
+TARGETHEIGHTSIZE = 0.2159
+CAMANGLEMOUNT = 45
+CAMHEIGHTMOUNT = 0  # Needs to change
+CAMOFFSETMOUNT = 0  # Needs to change
+
 
 class Vision:
 
@@ -21,15 +26,19 @@ class Vision:
 
     @classmethod
     def getTargetAngle(cls):
+        cls.__limelight.putNumber('ledMode', 3)
         horizontalTargetAngle = cls.__limelight.getNumber('tx', -1)
+        cls.__limelight.putNumber('ledMode', 1)
         if horizontalTargetAngle == -1: return -1
 
         return math.radians(horizontalTargetAngle)*0.99  # 0.99 is a coefficient to prevent overshoot.
 
     @classmethod
-    def getDistance(cls):
+    def getTargetDistance(cls):
+        cls.__limelight.putNumber('ledMode', 3)
         verticalTargetAngle = cls.__limelight.getNumber('ty', -1)  # finds vertical angle to target
+        cls.__limelight.putNumber('ledMode', 1)
         if verticalTargetAngle == -1: return -1
 
         # finds distance to target using limelight
-        return (TARGETHEIGHT - CAMHEIGHTMOUNT) / math.tan(math.radians(CAMANGLEMOUNT + verticalTargetAngle)) + CAMOFFSETMOUNT
+        return (TARGETHEIGHT - CAMHEIGHTMOUNT - TARGETHEIGHTSIZE) / math.tan(math.radians(CAMANGLEMOUNT + verticalTargetAngle)) + CAMOFFSETMOUNT
