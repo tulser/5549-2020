@@ -15,12 +15,14 @@ class Lift:
     @classmethod
     def __init__(cls):
         cls.init()
+        return
 
     @classmethod
     def init(cls):
         cls.__liftMotor = WPI_VictorSPX(13)
         cls.__compressor = Compressor(0)
         cls.__solenoid = DoubleSolenoid(2, 3)
+        return
 
     @classmethod
     def dropDown(cls):

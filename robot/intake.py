@@ -22,6 +22,7 @@ class Intake:
     @classmethod
     def __init__(cls):
         cls.init()
+        return
 
     @classmethod
     def init(cls):
@@ -31,12 +32,14 @@ class Intake:
         cls.__intakeOverhead.setInverted()
         cls.__roller = WPI_TalonSRX(14)
         cls.__roller.setInverted()
+        return
 
     @classmethod
     def intake(cls):
         cls.__intakeFlip.set(FLIPSCALAR)
         cls.__intakeVertical.set(SECONDINTAKESCALAR)
         cls.__intakeOverhead.set(LEXANSCALAR)
+        return
 
     @classmethod
     def moveThoseBalls(cls, state):
@@ -50,9 +53,9 @@ class Intake:
             cls.__intakeFlip.set(FLIPSCALAR)
             cls.__intakeVertical.set(SECONDINTAKESCALAR)
             cls.__intakeOverhead.set(LEXANSCALAR)
-        elif state is -1:  # puke
+        elif state is -1:  # huck
             cls.eject()
-        elif state is -2:  # puke more
+        elif state is -2:  # huck more
             cls.eject()
             cls.__roller.set(-SEMICIRCLEOUTPUT)
         return
@@ -61,9 +64,11 @@ class Intake:
     def cycleThoseBalls(cls):
         cls.__intakeOverhead.set(LEXANSCALAR)
         cls.__roller.set(SEMICIRCLEOUTPUT)
+        return
 
     @classmethod
     def eject(cls):
         cls.__intakeFlip.set(-FLIPSCALAR)
         cls.__intakeVertical.set(-SECONDINTAKESCALAR)
         cls.__intakeOverhead.set(-LEXANSCALAR)
+        return

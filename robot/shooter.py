@@ -9,7 +9,6 @@ from threading import Thread, RLock
 __all__ = ["Shooter"]
 
 WAITCONST = 8
-SHOOTERHEIGHT = 0.5461  # ground to shooter
 
 
 class PIDManager(Thread):
@@ -109,11 +108,16 @@ class Shooter:
     __pidUp: PIDManager = None
     __pidDown: PIDManager = None
 
-    presets = ()  # please fill in
+    presets = (
+        [50, 25],
+        [40, 20],
+        [30, 15]
+    )
 
     @classmethod
     def __init__(cls):
         cls.init()
+        return
 
     @classmethod
     def init(cls):
@@ -123,15 +127,12 @@ class Shooter:
         cls.__motorsDown = SpeedControllerGroup(cls.__encoderBot, WPI_VictorSPX(8))
         cls.__pidUp = PIDManager(cls.__motorsUp, 0, 0.1, 0.005, 0, 0, cls.__encoderTop, cls.__encoderBot)
         cls.__pidDown = PIDManager(cls.__motorsDown, 0, 0.1, 0.005, 0, 0, cls.__encoderTop, cls.__encoderBot)
-
-    @classmethod
-    def stopAll(cls):
-        cls.__motorsUp.set(0)
-        cls.__motorsDown.set(0)
+        return
 
     @classmethod
     def shootBoth(cls, rpm: float):
         cls.shootDifferent(rpm, rpm)
+        return
 
     @classmethod
     def shootDesired(cls, rpm: float, whichmotor: int):  # 0: both, 1: up, 2: down
@@ -147,6 +148,7 @@ class Shooter:
             cls.__pidDown.setSetpoint(rpm)
             cls.__pidUp.reset()
             cls.__pidDown.go(0.05)
+        return
 
     @classmethod
     def shootDifferent(cls, rpmUp: float, rpmDown: float):
@@ -158,23 +160,27 @@ class Shooter:
         cls.__pidDown.reset()
         cls.__pidUp.go(0.05)
         cls.__pidDown.go(0.05)
+        return
 
     @classmethod
     def shootPreset(cls, setting: int):
         cls.shootDifferent(cls.presets[setting][0], cls.presets[setting][1])
+        return
 
     @classmethod
     def shootAuto(cls, force=False):
+        if Vision.getTargetVisible():
+            return False
         dist = Vision.getTargetDistance()
         if dist < (TARGETHEIGHT-TARGETMARGINS) and not force:
             # Recommended to setup networktables feedback under this conditional.
-            return
+            return False
 
         cls.__encoderTop.setSelectedSensorPosition(0)
         cls.__encoderBot.setSelectedSensorPosition(0)
 
-        target = sqrt(-9.81 * pow(dist, 2) / (TARGETHEIGHT - SHOOTERHEIGHT + TARGETHEIGHTBIAS - dist)) * 12832.661368899589
+        target = sqrt(-9.81 * pow(dist, 2) / (TARGETHEIGHT - 0.5461 + TARGETHEIGHTBIAS - dist)) * 12832.661368899589
 
         # automatically shoot balls given distance
         cls.shootBoth(target)
-        return
+        return True

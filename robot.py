@@ -2,8 +2,8 @@
 Infinite Recharge - Scorpio from FRC 5549: Gryphon Robotics
 """
 # import packages
-from networktables import NetworkTables
 from robotpy_ext.control.toggle import Toggle
+import wpilib
 from robot import *
 
 """
@@ -43,18 +43,16 @@ class Manticore(wpilib.TimedRobot):
     def robotInit(self):
         """ function that is run at the beginning of the match """
 
-        global LeftJoystick, RightJoystick, XBox
-
-        LeftJoystick = wpilib.Joystick(1)
-        RightJoystick = wpilib.Joystick(2)
-        Joystick = wpilib.Joystick(3)  # xbox
+        SharedJoysticks.LeftJoystick = wpilib.Joystick(1)
+        SharedJoysticks.RightJoystick = wpilib.Joystick(2)
+        SharedJoysticks.XBox = wpilib.Joystick(3)  # xbox
 
         # Button for Switching Between Arcade and Tank Drive
-        self.driveButtonToggle = Toggle(LeftJoystick, 2)
-        self.liftButtonToggle = Toggle(XBox, 8)
+        self.driveButtonToggle = Toggle(SharedJoysticks.LeftJoystick, 2)
+        self.liftButtonToggle = Toggle(SharedJoysticks.XBox, 8)
 
         # init networktables
-        NetworkTables.initialize(server="10.55.49.2")
+        SharedTable.NTinstance.initialize(server="10.55.49.2")
 
         # init networktables dependent modules
         Vision()
@@ -82,7 +80,7 @@ class Manticore(wpilib.TimedRobot):
         ''' function that is run periodically during the tele-operated phase '''
 
         # get values at start of the loop
-        gearButtonStatus = RightJoystick.getRawButton(1)
+        gearButtonStatus = SharedJoysticks.RightJoystick.getRawButton(1)
 
         # Changing Between Arcade and Tank Drive
         if self.driveButtonToggle.get():

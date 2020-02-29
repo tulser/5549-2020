@@ -1,6 +1,6 @@
 """ dashboard functions """
 # importing packages
-from networktables import NetworkTables
+from robot import *
 
 __all__ = ["Dashboard"]
 
@@ -12,10 +12,12 @@ class Dashboard:
     @classmethod
     def __init__(cls):
         cls.init()
+        return
 
     @classmethod
     def init(cls):
-        cls.__dashboard = NetworkTables.getTable('SmartDashboard')
+        cls.__dashboard = SharedTable.NTinstance.getTable('SmartDashboard')
+        return
 
     @classmethod
     def setDashboardGearStatus(cls, status):

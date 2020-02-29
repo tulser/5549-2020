@@ -1,7 +1,7 @@
 """ drive functions """
 # importing packages
 from wpilib import SpeedControllerGroup, DoubleSolenoid
-from navx import AHRS
+import navx
 from math import fabs, ceil, log2
 from sys import maxsize
 from robot import *
@@ -27,12 +27,13 @@ class Drive:
 
     __fullDrive: DifferentialDrive = None
 
-    __navx: AHRS = None
+    __navx: navx.AHRS = None
     _gearSolenoid: DoubleSolenoid = None
 
     @classmethod
     def __init__(cls):
         cls.init()
+        return
 
     @classmethod
     def init(cls):
@@ -47,10 +48,11 @@ class Drive:
         # setting up differential drive
         cls.__fullDrive = DifferentialDrive(cls._leftDrive, cls._rightDrive)
 
-        cls.__navx = AHRS.create_spi()
+        cls.__navx = navx.AHRS.create_spi()
 
         # pneumatic solenoid for gear shifting
         cls._gearSolenoid = DoubleSolenoid(0, 1)
+        return
 
     @classmethod
     def inputTurn(cls, angle):
@@ -109,13 +111,20 @@ class Drive:
         return
 
     @classmethod
+    def setTankDrive(cls, left: float, right: float):
+        cls.__fullDrive.tankDrive(left, right)
+        return
+
+    @classmethod
     def tankDrive(cls):
         # tank drive at set scaling
-        cls.__fullDrive.tankDrive(LeftJoystick.getRawAxis(1) * DRIVESCALING, RightJoystick.getRawAxis(1) * DRIVESCALING)
+        cls.__fullDrive.tankDrive(SharedJoysticks.LeftJoystick.getRawAxis(1) * DRIVESCALING,
+                                  SharedJoysticks.RightJoystick.getRawAxis(1) * DRIVESCALING)
         return
 
     @classmethod
     def arcadeDrive(cls):
         # arcade drive at set scaling
-        cls.__fullDrive.arcadeDrive(LeftJoystick.getRawAxis(1) * DRIVESCALING, LeftJoystick.getRawAxis(2) * ROTSCALING)
+        cls.__fullDrive.arcadeDrive(SharedJoysticks.LeftJoystick.getRawAxis(1) * DRIVESCALING,
+                                    SharedJoysticks.LeftJoystick.getRawAxis(2) * ROTSCALING)
         return
