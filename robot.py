@@ -35,7 +35,6 @@ Motor Mapping
 
 
 class Manticore(wpilib.TimedRobot):
-
     gearButtonStatusPrev: bool = False  # variable for storing previous joystick states.
     driveButtonToggle: Toggle = None  # left joy, button 2 toggle.
     liftButtonToggle: Toggle = None
@@ -43,26 +42,30 @@ class Manticore(wpilib.TimedRobot):
     def robotInit(self):
         """ function that is run at the beginning of the match """
 
-        SharedJoysticks.LeftJoystick = wpilib.Joystick(1)
-        SharedJoysticks.RightJoystick = wpilib.Joystick(2)
-        SharedJoysticks.XBox = wpilib.Joystick(3)  # xbox
+        # init joysticks
+        SharedJoysticks()
 
-        # Button for Switching Between Arcade and Tank Drive
+        # toggle buttons
         self.driveButtonToggle = Toggle(SharedJoysticks.LeftJoystick, 2)
         self.liftButtonToggle = Toggle(SharedJoysticks.XBox, 8)
 
         # init networktables
-        SharedTable.NTinstance.initialize(server="10.55.49.2")
+        SharedTables(server="10.55.49.2")
 
         # init networktables dependent modules
         Vision()
         Dashboard()
 
-        # init motor modules
-        Drive()
+        # init pure motor modules
         Intake()
-        Lift()
         Shooter()
+
+        # init pneumatics
+        SharedPneumatics()
+
+        # init motor/pneumatics modules
+        Drive()
+        Lift()
 
     def autonomousInit(self):
         ''' function that is run at the beginning of the autonomous phase '''
@@ -84,9 +87,10 @@ class Manticore(wpilib.TimedRobot):
 
         # Changing Between Arcade and Tank Drive
         if self.driveButtonToggle.get():
-            Drive.tankDrive()
+            Drive.changeDrive(0)
         else:
-            Drive.arcadeDrive()
+            Drive.changeDrive(1)
+        Drive.drive()
 
         # Changing Drive Train Gears
         if self.gearButtonStatusPrev and not gearButtonStatus:

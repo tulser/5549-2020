@@ -1,27 +1,28 @@
 """"" lift functions """
 # importing packages
+from custom import ActiveBase
+from robot import SharedPneumatics
 from ctre import *
-from wpilib import Compressor, DoubleSolenoid
 
 __all__ = ["Lift"]
 
 
-class Lift:
-
+class Lift(ActiveBase):
     __liftMotor: WPI_VictorSPX = None
-    __compressor: Compressor = None
-    __solenoid: DoubleSolenoid = None
+    __pneumaticsLiftSolenoid: int = None
 
     @classmethod
     def __init__(cls):
-        cls.init()
+        if not cls.__active:
+            cls.__startup()
+            cls.__active = True
         return
 
     @classmethod
-    def init(cls):
+    def __startup(cls):
         cls.__liftMotor = WPI_VictorSPX(13)
-        cls.__compressor = Compressor(0)
-        cls.__solenoid = DoubleSolenoid(2, 3)
+        if SharedPneumatics.getActive():
+            cls.__pneumaticsLiftSolenoid = SharedPneumatics.registerNewDoubleSolenoid(2, 3)
         return
 
     @classmethod

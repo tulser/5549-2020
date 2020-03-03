@@ -9,4 +9,5 @@ from robot.shared import (TARGETHEIGHT,
                           TARGETHEIGHTBIAS,
                           TARGETMARGINS,
                           SharedJoysticks,
-                          SharedTable)
+                          SharedTables,
+                          SharedPneumatics)

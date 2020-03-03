@@ -1,5 +1,6 @@
 """ drive functions """
 # importing packages
+from custom import ActiveBase
 from wpilib import SpeedControllerGroup, DoubleSolenoid
 import navx
 from math import fabs, ceil, log2
@@ -17,7 +18,7 @@ DRIVESCALING = 0.65
 ROTSCALING = 1
 
 
-class Drive:
+class Drive(ActiveBase):
 
     _motorLeftEnc: WPI_TalonSRX = None
     _motorRightEnc: WPI_TalonSRX = None
@@ -27,16 +28,21 @@ class Drive:
 
     __fullDrive: DifferentialDrive = None
 
+    __driveFunc = None
+    __driveMode: int = 0
+
     __navx: navx.AHRS = None
     _gearSolenoid: DoubleSolenoid = None
 
     @classmethod
     def __init__(cls):
-        cls.init()
+        if not cls.__active:
+            cls.__startup()
+            cls.__active = True
         return
 
     @classmethod
-    def init(cls):
+    def __startup(cls):
         # encoders
         cls.motorLeftEnc = WPI_TalonSRX(1)
         cls.motorRightEnc = WPI_TalonSRX(3)
@@ -47,6 +53,9 @@ class Drive:
 
         # setting up differential drive
         cls.__fullDrive = DifferentialDrive(cls._leftDrive, cls._rightDrive)
+
+        cls.__driveFunc = cls.tankDrive
+        cls.__driveMode = 0
 
         cls.__navx = navx.AHRS.create_spi()
 
@@ -111,7 +120,20 @@ class Drive:
         return
 
     @classmethod
-    def setTankDrive(cls, left: float, right: float):
+    def changeDrive(cls, mode: int):
+        if mode == cls.__driveMode: return
+        if mode == 0:
+            cls.__driveFunc = cls.tankDrive
+        if mode == 1:
+            cls.__driveFunc = cls.arcadeDrive
+        return
+
+    @classmethod
+    def drive(cls):
+        cls.__driveFunc()
+
+    @classmethod
+    def forceTankDrive(cls, left: float, right: float):
         cls.__fullDrive.tankDrive(left, right)
         return
 
@@ -128,3 +150,7 @@ class Drive:
         cls.__fullDrive.arcadeDrive(SharedJoysticks.LeftJoystick.getRawAxis(1) * DRIVESCALING,
                                     SharedJoysticks.LeftJoystick.getRawAxis(2) * ROTSCALING)
         return
+
+    @classmethod
+    def getAHRSYaw(cls):
+        return cls.__navx.getYaw()

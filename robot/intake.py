@@ -1,8 +1,8 @@
 """ intake functions """
 # importing packages
+from custom import ActiveBase  # , SpeedControllerGroup_M
 from ctre import *
-from wpilib import SpeedControllerGroup
-# from custom import SpeedControllerGroup_M
+from wpilib import SpeedControllerGroup, DigitalInput
 
 __all__ = ["Intake"]
 
@@ -12,7 +12,10 @@ LEXANSCALAR = 1
 SEMICIRCLEOUTPUT = 1.5
 
 
-class Intake:
+class Intake(ActiveBase):
+    __limitSwitch: DigitalInput = None
+    __balls = 0
+    __limitSwitchTriggered = False
 
     __intakeFlip: WPI_TalonSRX = None
     __intakeVertical: SpeedControllerGroup = None
@@ -21,12 +24,16 @@ class Intake:
 
     @classmethod
     def __init__(cls):
-        cls.init()
+        if not cls.__active:
+            cls.__startup()
+            cls.__active = True
         return
 
     @classmethod
-    def init(cls):
+    def __startup(cls):
+        cls.__limitSwitch = DigitalInput(0)
         cls.__intakeFlip = WPI_TalonSRX(11)
+        cls.__intakeFlip.setInverted(True)
         cls.__intakeVertical = SpeedControllerGroup(WPI_TalonSRX(9), WPI_VictorSPX(10))
         cls.__intakeOverhead = WPI_VictorSPX(15)
         cls.__intakeOverhead.setInverted()

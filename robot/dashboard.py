@@ -1,27 +1,29 @@
 """ dashboard functions """
 # importing packages
+from custom import ActiveBase
 from robot import *
 
 __all__ = ["Dashboard"]
 
 
-class Dashboard:
+class Dashboard(ActiveBase):
 
     __dashboard = None
 
     @classmethod
     def __init__(cls):
-        cls.init()
+        if not cls.__active:
+            cls.__startup()
+            cls.__active = True
         return
 
     @classmethod
-    def init(cls):
-        cls.__dashboard = SharedTable.NTinstance.getTable('SmartDashboard')
+    def __startup(cls):
+        cls.__dashboard = SharedTables.dashboard
         return
 
     @classmethod
-    def setDashboardGearStatus(cls, status):
-        # display high/low gear to dashboard
+    def setDashboardGearStatus(cls, status: int):
         if status is 0:
             message = "OFF"
         elif status is 1:
@@ -34,8 +36,7 @@ class Dashboard:
         return
 
     @classmethod
-    def setLiftStatus(cls, status):
-        # display high/low gear to dashboard
+    def setLiftStatus(cls, status: int):
         if status is 0:
             message = "INACTIVE"
         elif status is 1:
@@ -48,8 +49,7 @@ class Dashboard:
         return
 
     @classmethod
-    def setCompressorStatus(cls, status):
-        # display high/low gear to dashboard
+    def setCompressorStatus(cls, status: int):
         if status is 0:
             message = "OFF"
         elif status is 1:
@@ -60,3 +60,21 @@ class Dashboard:
             message = "UNKNOWN"
         cls.__dashboard.putString("Compressor Status", message)
         return
+
+    @classmethod
+    def setDriveStatus(cls, status: int):
+        if status is 0:
+            message = "TANK"
+        elif status is 1:
+            message = "ARCADE"
+        else:
+            message = "UNKNOWN/UNSUPPORTED"
+        cls.__dashboard.putString("Drive Status", message)
+
+    @classmethod
+    def setBallsStatus(cls, quantity: int):
+        cls.__dashboard.putNumber("Balls Obtained", quantity)
+
+    @classmethod
+    def setAHRSstatus(cls, angle: float):
+        cls.__dashboard.putNumber("AHRS Yaw", angle)
