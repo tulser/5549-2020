@@ -3,8 +3,7 @@
 from custom import ActiveBase
 from wpilib import SpeedControllerGroup, DoubleSolenoid
 import navx
-from math import fabs, ceil, log2
-from sys import maxsize
+from math import fabs
 from robot import *
 from ctre import *
 from wpilib.drive import DifferentialDrive
@@ -75,25 +74,24 @@ class Drive(ActiveBase):
     @classmethod
     def auxAutoSmoothTurn(cls):  # Align to target w/o navx, don't recommend using
         angle = Vision.getTargetAngle()
-        intlength = int(log2(maxsize * 2 + 1))
-        sign = ceil(angle) >> (intlength-1)
-        reqangle = fabs(angle)
-        while reqangle >= 0.1:  # just proportional smoothing
-            nspeed = sign * (reqangle + 0.05) / 1.570796
+        reqangle = angle
+        while fabs(reqangle) >= 2:  # just proportional smoothing
+            nspeed = reqangle / 90
             cls._leftDrive.set(nspeed)  # the sign on these might be backwards, needs testing.
             cls._rightDrive.set(-nspeed)
-            reqangle = fabs(Vision.getTargetAngle())
-            sign = ceil(reqangle) >> (intlength - 1)
+            reqangle = Vision.getTargetAngle()
         return
 
     @classmethod
     def autoSmoothTurn(cls):  # Align w/ navx
+        if not Vision.getTargetVisible():
+            return
         cls.__navx.reset()
         angle = Vision.getTargetAngle()
-        diff = 4
-        while diff >= 0.1:  # just proportional smoothing
-            diff = angle-(cls.__navx.getAngle() % 360)
-            nspeed = diff / 1.570796
+        diff = angle
+        while diff >= 2:  # just proportional smoothing
+            diff = angle-cls.__navx.getAngle()
+            nspeed = diff / 90
             cls._leftDrive.set(nspeed)  # the sign on these might be backwards, needs testing.
             cls._rightDrive.set(-nspeed)
         return

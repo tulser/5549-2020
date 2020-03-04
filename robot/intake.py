@@ -92,10 +92,9 @@ class Intake(ActiveBase):
                     cls.setMultipleIntake(-1, 0, 0)
 
                 elif dpadValue is 135 or dpadValue is 180 or dpadValue is 225:
-                    colorprox = cls.__colorSensor.getProximity()
                     secondaryspeed = 1
                     ternaryspeed = 0
-                    if colorprox >= COLORSENSITIVITY:
+                    if cls.__colorSensor.getProximity() >= COLORSENSITIVITY:
                         ternaryspeed = 1
 
                     if cls.__balls > 2:

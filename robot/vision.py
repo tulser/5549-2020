@@ -30,13 +30,14 @@ class Vision:
         return True if cls.__limelight.getNumber('tv', -1) == 1 else False
 
     @classmethod
-    def getTargetAngle(cls):
+    def getTargetAngle(cls, retdegrees: bool = True):
         cls.__limelight.putNumber('ledMode', 3)
         sleep(2)
         horizontalTargetAngle = cls.__limelight.getNumber('tx', 0)
         cls.__limelight.putNumber('ledMode', 1)
 
-        return math.radians(horizontalTargetAngle)*0.99  # 0.99 is a coefficient to prevent overshoot.
+        if retdegrees: return horizontalTargetAngle
+        return math.radians(horizontalTargetAngle)
 
     @classmethod
     def getTargetDistance(cls):
