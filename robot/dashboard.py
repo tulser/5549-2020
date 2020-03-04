@@ -2,24 +2,24 @@
 # importing packages
 from custom import ActiveBase
 from robot import *
+from networktables import NetworkTable
 
 __all__ = ["Dashboard"]
 
 
 class Dashboard(ActiveBase):
-
-    __dashboard = None
+    __dashboard: NetworkTable = None
 
     @classmethod
-    def __init__(cls):
+    def __init__(cls, server: str = "10.55.49.2"):
         if not cls.__active:
-            cls.__startup()
+            cls.__startup(server)
             cls.__active = True
         return
 
     @classmethod
-    def __startup(cls):
-        cls.__dashboard = SharedTables.dashboard
+    def __startup(cls, server):
+        cls.__dashboard = SharedTables.getTable("SmartDashboard")
         return
 
     @classmethod
@@ -70,6 +70,10 @@ class Dashboard(ActiveBase):
         else:
             message = "UNKNOWN/UNSUPPORTED"
         cls.__dashboard.putString("Drive Status", message)
+
+    @classmethod
+    def setVisionDistance(cls, dist: float):
+        cls.__dashboard.putNumber("Distance", dist)
 
     @classmethod
     def setBallsStatus(cls, quantity: int):

@@ -22,9 +22,7 @@ class Shooter(ActiveBase):
     __pidDown: PIDManager = None
 
     presets = (
-        [50, 25],
-        [40, 20],
-        [30, 15]
+        [1700, 2700],
     )
 
     @classmethod
@@ -38,10 +36,13 @@ class Shooter(ActiveBase):
     def __startup(cls):
         cls.__encoderTop = WPI_TalonSRX(5)
         cls.__encoderBot = WPI_TalonSRX(7)
+
         cls.__motorsUp = SpeedControllerGroup(cls.__encoderTop, WPI_VictorSPX(6))
         cls.__motorsDown = SpeedControllerGroup(cls.__encoderBot, WPI_VictorSPX(8))
+
         cls.__pidUp = PIDManager(cls.__motorsUp, 0, 0.1, 0.005, 0, 0, cls.__encoderTop, cls.__encoderBot)
         cls.__pidDown = PIDManager(cls.__motorsDown, 0, 0.1, 0.005, 0, 0, cls.__encoderTop, cls.__encoderBot)
+
         cls.__pidUp.setTolerance(SHOOTERTOLERANCE)
         cls.__pidDown.setTolerance(SHOOTERTOLERANCE)
         return
@@ -101,3 +102,8 @@ class Shooter(ActiveBase):
         # automatically shoot balls given distance
         cls.shootBoth(target)
         return True
+
+    @classmethod
+    @property
+    def allready(cls) -> bool:
+        return cls.__pidUp.achieved and cls.__pidDown.achieved

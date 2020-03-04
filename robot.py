@@ -36,7 +36,7 @@ Motor Mapping
 
 class Manticore(wpilib.TimedRobot):
     gearButtonStatusPrev: bool = False  # variable for storing previous joystick states.
-    driveButtonToggle: Toggle = None  # left joy, button 2 toggle.
+    driveButtonStatusPrev: bool = False
     liftButtonToggle: Toggle = None
 
     def robotInit(self):
@@ -46,7 +46,6 @@ class Manticore(wpilib.TimedRobot):
         SharedJoysticks()
 
         # toggle buttons
-        self.driveButtonToggle = Toggle(SharedJoysticks.LeftJoystick, 2)
         self.liftButtonToggle = Toggle(SharedJoysticks.XBox, 8)
 
         # init networktables
@@ -77,22 +76,25 @@ class Manticore(wpilib.TimedRobot):
 
     def teleopInit(self):
         ''' function that is run at the beginning of the tele-operated phase '''
-        pass
+        Drive.changeGear(2)
 
     def teleopPeriodic(self):
         ''' function that is run periodically during the tele-operated phase '''
 
         # get values at start of the loop
+        driveButtonStatus = SharedJoysticks.LeftJoystick.getRawButton(2)
+
         gearButtonStatus = SharedJoysticks.RightJoystick.getRawButton(1)
 
-        # Changing Between Arcade and Tank Drive
-        if self.driveButtonToggle.get():
-            Drive.changeDrive(0)
-        else:
-            Drive.changeDrive(1)
-        Drive.drive()
+        shooterTriggerValue = SharedJoysticks.XBox.getRawAxis(3)
+        aaimButtonStatus = SharedJoysticks.XBox.getRawButton(6)
+        dpadValue = SharedJoysticks.XBox.getPOV()
 
-        # Changing Drive Train Gears
+        # Change between Arcade or Tank drives
+        if self.driveButtonStatusPrev and not driveButtonStatus:
+            Drive.alternateDrive()
+
+        # Alternate gears on button press + release
         if self.gearButtonStatusPrev and not gearButtonStatus:
             Drive.alternateGear()
 
@@ -101,8 +103,16 @@ class Manticore(wpilib.TimedRobot):
         else:
             Lift.dropDown()
 
+        # hold button to start the auto turn
+        if aaimButtonStatus:
+            Drive.autoSmoothTurn()
+        else:
+            Drive.drive()
+            Intake.intake()
+
         # finalize the loop by applying the joystick state of this loop to be carried forward as the previous.
         self.gearButtonStatusPrev = gearButtonStatus
+        self.driveButtonStatusPrev = driveButtonStatus
 
 
 if __name__ == '__main__':

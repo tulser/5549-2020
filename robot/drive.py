@@ -28,7 +28,6 @@ class Drive(ActiveBase):
 
     __fullDrive: DifferentialDrive = None
 
-    __driveFunc = None
     __driveMode: int = 0
 
     __navx: navx.AHRS = None
@@ -53,8 +52,8 @@ class Drive(ActiveBase):
 
         # setting up differential drive
         cls.__fullDrive = DifferentialDrive(cls._leftDrive, cls._rightDrive)
+        cls.drive = cls.__tankDrive
 
-        cls.__driveFunc = cls.tankDrive
         cls.__driveMode = 0
 
         cls.__navx = navx.AHRS.create_spi()
@@ -93,11 +92,15 @@ class Drive(ActiveBase):
         angle = Vision.getTargetAngle()
         diff = 4
         while diff >= 0.1:  # just proportional smoothing
-            diff = angle-cls.__navx.getAngle()
+            diff = angle-(cls.__navx.getAngle() % 360)
             nspeed = diff / 1.570796
             cls._leftDrive.set(nspeed)  # the sign on these might be backwards, needs testing.
             cls._rightDrive.set(-nspeed)
         return
+
+    @classmethod
+    def getGearStatus(cls):
+        return cls._gearSolenoid.get()
 
     @classmethod
     def alternateGear(cls):
@@ -107,11 +110,12 @@ class Drive(ActiveBase):
         return
 
     @classmethod
-    def changeGear(cls, gear: DoubleSolenoid.Value = 0):
+    def changeGear(cls, gear: DoubleSolenoid.Value):
         # switches gear mode
-        mode = gear % 3
-        cls._gearSolenoid.set(mode)
-        Dashboard.setDashboardGearStatus(mode)
+        if gear > 2 or gear < 0 or gear is cls._gearSolenoid.get():
+            return
+        cls._gearSolenoid.set(gear)
+        Dashboard.setDashboardGearStatus(gear)
         return
 
     @classmethod
@@ -120,17 +124,24 @@ class Drive(ActiveBase):
         return
 
     @classmethod
+    def alternateDrive(cls):
+        cls.changeDrive(cls.__driveMode ^ 0x1)
+        return
+
+    @classmethod
     def changeDrive(cls, mode: int):
-        if mode == cls.__driveMode: return
+        if cls.__driveMode is mode:
+            return
         if mode == 0:
-            cls.__driveFunc = cls.tankDrive
-        if mode == 1:
-            cls.__driveFunc = cls.arcadeDrive
+            cls.drive = cls.__tankDrive
+        elif mode == 1:
+            cls.drive = cls.__arcadeDrive
+        cls.__driveMode = mode
         return
 
     @classmethod
     def drive(cls):
-        cls.__driveFunc()
+        pass
 
     @classmethod
     def forceTankDrive(cls, left: float, right: float):
@@ -138,14 +149,14 @@ class Drive(ActiveBase):
         return
 
     @classmethod
-    def tankDrive(cls):
+    def __tankDrive(cls):
         # tank drive at set scaling
         cls.__fullDrive.tankDrive(SharedJoysticks.LeftJoystick.getRawAxis(1) * DRIVESCALING,
                                   SharedJoysticks.RightJoystick.getRawAxis(1) * DRIVESCALING)
         return
 
     @classmethod
-    def arcadeDrive(cls):
+    def __arcadeDrive(cls):
         # arcade drive at set scaling
         cls.__fullDrive.arcadeDrive(SharedJoysticks.LeftJoystick.getRawAxis(1) * DRIVESCALING,
                                     SharedJoysticks.LeftJoystick.getRawAxis(2) * ROTSCALING)

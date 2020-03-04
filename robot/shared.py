@@ -1,6 +1,6 @@
 from custom import ActiveBase
 import wpilib  # only for annotations
-from networktables import NetworkTablesInstance, NetworkTable
+from networktables import NetworkTablesInstance
 
 # shared constants
 TARGETHEIGHTBIAS = 0.01  # offset to compensate for undershoot and partly for air resistance
@@ -31,7 +31,6 @@ class SharedJoysticks(ActiveBase):
 
 class SharedTables(ActiveBase):
     __instance: NetworkTablesInstance = None
-    dashboard: NetworkTable = None
 
     @classmethod
     def __init__(cls, server: str):
@@ -44,8 +43,11 @@ class SharedTables(ActiveBase):
     def __startup(cls, server: str):
         cls.__instance = NetworkTablesInstance.getDefault()
         cls.__instance.initialize(server)
-        cls.dashboard = cls.__instance.getTable("SmartDashboard")
         return
+
+    @classmethod
+    def getTable(cls, table: str):
+        return cls.__instance.getTable(table)
 
 
 class SharedPneumatics(ActiveBase):
@@ -63,7 +65,7 @@ class SharedPneumatics(ActiveBase):
     def __startup(cls, doublesolenoids: [wpilib.DoubleSolenoid] = None):
         cls.compressor = wpilib.Compressor(0)
         cls.compressor.setClosedLoopControl(True)
-        if doublesolenoids != None:
+        if doublesolenoids is not None:
             cls.__solenoids = doublesolenoids
         cls.compressor.start()
         return

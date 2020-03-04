@@ -1,15 +1,17 @@
 """ intake functions """
 # importing packages
 from custom import ActiveBase  # , SpeedControllerGroup_M
+from robot import SharedJoysticks, Shooter
 from ctre import *
-from wpilib import SpeedControllerGroup, DigitalInput
+from wpilib import SpeedControllerGroup, DigitalInput, I2C
+from rev.color import ColorSensorV3
 
 __all__ = ["Intake"]
 
-FLIPSCALAR = 1.5
-SECONDINTAKESCALAR = 1
-LEXANSCALAR = 1
-SEMICIRCLEOUTPUT = 1.5
+FIRSTINTAKESCALAR = 0.5
+SECONDINTAKESCALAR = 0.75
+THIRDINTAKESCALAR = 1
+COLORSENSITIVITY = 160
 
 
 class Intake(ActiveBase):
@@ -18,9 +20,11 @@ class Intake(ActiveBase):
     __limitSwitchTriggered = False
 
     __intakeFlip: WPI_TalonSRX = None
-    __intakeVertical: SpeedControllerGroup = None
+    __intakeIndexer: SpeedControllerGroup = None
     __intakeOverhead: WPI_VictorSPX = None
     __roller: WPI_TalonSRX = None  # semicircle
+
+    __colorSensor: ColorSensorV3
 
     @classmethod
     def __init__(cls):
@@ -32,50 +36,90 @@ class Intake(ActiveBase):
     @classmethod
     def __startup(cls):
         cls.__limitSwitch = DigitalInput(0)
+
         cls.__intakeFlip = WPI_TalonSRX(11)
         cls.__intakeFlip.setInverted(True)
-        cls.__intakeVertical = SpeedControllerGroup(WPI_TalonSRX(9), WPI_VictorSPX(10))
+
+        one = WPI_TalonSRX(9)
+        two = WPI_VictorSPX(10)
+        bed = WPI_TalonSRX(12)
+        one.setInverted(True)
+        two.setInverted(True)
+        bed.setInverted(True)
+        cls.__intakeIndexer = SpeedControllerGroup(one, two, bed)
+
         cls.__intakeOverhead = WPI_VictorSPX(15)
-        cls.__intakeOverhead.setInverted()
+        cls.__intakeOverhead.setInverted(True)
+
         cls.__roller = WPI_TalonSRX(14)
-        cls.__roller.setInverted()
+        cls.__roller.setInverted(True)
+
+        cls.__colorSensor = ColorSensorV3(I2C.Port.kOnboard)
         return
+
+    @classmethod
+    def setPrimaryIntake(cls, speed: float = 0):
+        cls.__intakeFlip.set(speed * FIRSTINTAKESCALAR)
+        return
+    
+    @classmethod
+    def setSecondaryIntake(cls, speed: float = 0):
+        cls.__intakeIndexer.set(speed * SECONDINTAKESCALAR)
+        return 
+    
+    @classmethod
+    def setTernaryIntake(cls, speed: float = 0):
+        if speed is not 0:
+            cls.__intakeOverhead.set(speed * THIRDINTAKESCALAR)
+        else:
+            cls.__intakeOverhead.stopMotor()
+        return
+
+    @classmethod
+    def setMultipleIntake(cls, first: float = 0, second: float = 0, third: float = 0):
+        cls.setPrimaryIntake(first)
+        cls.setSecondaryIntake(second)
+        cls.setTernaryIntake(third)
 
     @classmethod
     def intake(cls):
-        cls.__intakeFlip.set(FLIPSCALAR)
-        cls.__intakeVertical.set(SECONDINTAKESCALAR)
-        cls.__intakeOverhead.set(LEXANSCALAR)
-        return
+        if not SharedJoysticks.XBox.getRawButton(7):
+            if SharedJoysticks.XBox.getRawAxis(3) < 0.25:
+                Shooter.shootPreset(0)
+                if Shooter.allready:
+                    cls.setMultipleIntake(1, 1, 1)
+                cls.__balls = 0
+            else:
+                dpadValue = SharedJoysticks.XBox.getPOV()
+                if dpadValue is 315 or dpadValue is 0 or dpadValue is 45:
+                    cls.setMultipleIntake(-1, 0, 0)
 
-    @classmethod
-    def moveThoseBalls(cls, state):
-        # taking in the ball at set scaling
-        if state is 0:  # stuck
-            cls.__intakeFlip.set(0)
-            cls.__intakeVertical.set(0)
-            cls.__intakeOverhead.set(0)
-            cls.__roller.set(0)
-        elif state is 1:  # suck
-            cls.__intakeFlip.set(FLIPSCALAR)
-            cls.__intakeVertical.set(SECONDINTAKESCALAR)
-            cls.__intakeOverhead.set(LEXANSCALAR)
-        elif state is -1:  # huck
-            cls.eject()
-        elif state is -2:  # huck more
-            cls.eject()
-            cls.__roller.set(-SEMICIRCLEOUTPUT)
-        return
+                elif dpadValue is 135 or dpadValue is 180 or dpadValue is 225:
+                    colorprox = cls.__colorSensor.getProximity()
+                    secondaryspeed = 1
+                    ternaryspeed = 0
+                    if colorprox >= COLORSENSITIVITY:
+                        ternaryspeed = 1
 
-    @classmethod
-    def cycleThoseBalls(cls):
-        cls.__intakeOverhead.set(LEXANSCALAR)
-        cls.__roller.set(SEMICIRCLEOUTPUT)
-        return
+                    if cls.__balls > 2:
+                        secondaryspeed = 0
+
+                    cls.setMultipleIntake(1, secondaryspeed, ternaryspeed)
+
+                else:
+                    cls.setMultipleIntake()
+
+        else:
+            cls.setMultipleIntake(-1, -1, -1)
+
 
     @classmethod
     def eject(cls):
-        cls.__intakeFlip.set(-FLIPSCALAR)
-        cls.__intakeVertical.set(-SECONDINTAKESCALAR)
-        cls.__intakeOverhead.set(-LEXANSCALAR)
+        cls.setPrimaryIntake(-1)
+        cls.setSecondaryIntake(-1)
         return
+
+    @classmethod
+    def ejectAll(cls):
+        cls.eject()
+        cls.__intakeOverhead.set(-1)

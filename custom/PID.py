@@ -37,6 +37,8 @@ class PIDManager(Thread):
         self.__threshold = 0.1
         self.enabled = False
         self.active = False
+        self.__achieved = False
+        self.__noContinue = False
 
         self.waitThresh = 20
 
@@ -61,10 +63,15 @@ class PIDManager(Thread):
         self.waitThresh = threshold
         return
 
+    @property
+    def achieved(self):
+        return self.__achieved
+
     def go(self, threshold: float = 0.1):
         self.__threshold = threshold
         self.active = True
         self.enabled = True
+        self.reset()
         if not self.is_alive():
             self.start()
         return
@@ -84,10 +91,13 @@ class PIDManager(Thread):
 
                     condit = fabs(error) > self.__threshold
                     counter = (counter + 1) if not condit else 0
-                    if not condit or counter > self.waitThresh: break
 
                     self.__integralsum += error
                     self.__pasterr = error
+                if not condit and counter > self.waitThresh:
+                    self.__achieved = True
+                    if self.__noContinue:
+                        break
         return
 
     def pause(self):
@@ -96,6 +106,7 @@ class PIDManager(Thread):
 
     def stop(self):
         self.active = False
+        self.enabled = False
         self.reset()
         return
 
@@ -103,4 +114,5 @@ class PIDManager(Thread):
         with self.mutex:
             self.__integralsum = 0
             self.__pasterr = 0
+            self.__achieved = False
         return
