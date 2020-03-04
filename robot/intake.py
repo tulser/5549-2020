@@ -10,7 +10,7 @@ __all__ = ["Intake"]
 
 FIRSTINTAKESCALAR = 0.5
 SECONDINTAKESCALAR = 0.75
-THIRDINTAKESCALAR = 1
+THIRDINTAKESCALAR = 0.7
 COLORSENSITIVITY = 160
 
 
@@ -48,11 +48,8 @@ class Intake(ActiveBase):
         bed.setInverted(True)
         cls.__intakeIndexer = SpeedControllerGroup(one, two, bed)
 
-        cls.__intakeOverhead = WPI_VictorSPX(15)
+        cls.__intakeOverhead = WPI_TalonSRX(14)
         cls.__intakeOverhead.setInverted(True)
-
-        cls.__roller = WPI_TalonSRX(14)
-        cls.__roller.setInverted(True)
 
         cls.__colorSensor = ColorSensorV3(I2C.Port.kOnboard)
         return
