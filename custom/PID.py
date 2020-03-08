@@ -26,13 +26,15 @@ class PIDManager(Thread):
         self.__controller = ctrlr
 
         if len(args) is 1:
-            self.__src = args[0]
             self.__srcact = self.__single
         else:
-            self.__src = args
             self.__srcact = self.__multi
 
+        self.__src = args
+
         self.__srclen = len(args)
+
+        self.__calcact = self.__stdcalc
 
         self._Pfac = p
         self._Ifac = i
@@ -61,6 +63,14 @@ class PIDManager(Thread):
             self.__setpoint = setpoint
         return
 
+    def setMode(self, mode: int):
+        if mode is 0:
+            with self.mutex:
+                self.__calcact = self.__stdcalc
+        else:
+            with self.mutex:
+                self.__calcact = self.__rangedcalc
+
     def setPIDF(self, P: float = 0, I: float = 0, D: float = 0, F: float = 0):
         with self.mutex:
             self._Pfac = P
@@ -78,13 +88,30 @@ class PIDManager(Thread):
         return self.__achieved
 
     def __single(self):
-        return self.__src.getSelectedSensorVelocity() * 10
+        return self.__src[0].getSelectedSensorVelocity() * 10
 
     def __multi(self):
         currval = 0
         for talon in self.__src:
             currval += talon.getSelectedSensorVelocity() * 10
         return self.__setpoint - currval / self.__srclen
+
+    def __stdcalc(self, err):
+        self.__controller.set(err * self._Pfac + self.__integralsum * self._Ifac + (
+                err - self.__preverr[0]) * self._Dfac + self._FFfac)
+
+        self.__integralsum += err
+        self.__preverr[0] = err
+
+    def __rangedcalc(self, err):
+        self.__intcounter = (self.__intcounter + 1) % self.__preverr.size
+
+        self.__controller.set(err * self._Pfac + self.__integralsum * self._Ifac + (
+                err - self.__preverr[self.__intcounter]) * self._Dfac + self._FFfac)
+
+        self.__integralsum += err
+        self.__integralsum -= self.__preverr[(self.__intcounter + 1) % self.__preverr.size]
+        self.__preverr[self.__intcounter] = err
 
     def go(self, threshold: float = 0.1):
         self.__threshold = threshold
@@ -101,17 +128,10 @@ class PIDManager(Thread):
             if self.enabled:
                 with self.mutex:
                     error = self.__srcact()
-
-                    self.__intcounter = (self.__intcounter + 1) % self.__preverr.size
-
-                    self.__controller.set(error * self._Pfac + self.__integralsum * self._Ifac + (
-                                error - self.__preverr[self.__intcounter]) * self._Dfac + self._FFfac)
+                    self.__calcact(error)
 
                     condit = fabs(error) > self.__threshold
                     counter = (counter + 1) if not condit else 0
-                    self.__integralsum += error
-                    self.__integralsum -= self.__preverr[(self.__intcounter + 1) % self.__preverr.size]
-                    self.__preverr[self.__intcounter] = error
                 if not condit and counter > self.waitThresh:
                     self.__achieved = True
                     if self.__noContinue:
