@@ -2,6 +2,7 @@ from wpilib import SpeedControllerGroup
 from ctre import TalonSRX
 from math import fabs
 from threading import Thread, RLock
+import numpy
 
 __all__ = ["PIDManager"]
 
@@ -24,7 +25,14 @@ class PIDManager(Thread):
 
         self.__controller = ctrlr
 
-        self.__src = tuple(args)
+        if len(args) is 1:
+            self.__src = args[0]
+            self.__srcact = self.__single
+        else:
+            self.__src = args
+            self.__srcact = self.__multi
+
+        self.__srclen = len(args)
 
         self._Pfac = p
         self._Ifac = i
@@ -35,6 +43,8 @@ class PIDManager(Thread):
         self.__pasterr = 0
         self.__setpoint = setpoint
         self.__threshold = 0.1
+        self.__intcounter = 1
+        self.__preverr = numpy.zeros(10)
         self.enabled = False
         self.active = False
         self.__achieved = False
@@ -67,6 +77,15 @@ class PIDManager(Thread):
     def achieved(self):
         return self.__achieved
 
+    def __single(self):
+        return self.__src.getSelectedSensorVelocity() * 10
+
+    def __multi(self):
+        currval = 0
+        for talon in self.__src:
+            currval += talon.getSelectedSensorVelocity() * 10
+        return self.__setpoint - currval / self.__srclen
+
     def go(self, threshold: float = 0.1):
         self.__threshold = threshold
         self.active = True
@@ -81,19 +100,18 @@ class PIDManager(Thread):
         while self.active:
             if self.enabled:
                 with self.mutex:
-                    currval = 0
-                    for talon in self.__src:
-                        currval += talon.getSelectedSensorVelocity()*10
-                    error = self.__setpoint - currval / self.__src.__len__()
+                    error = self.__srcact()
+
+                    self.__intcounter = (self.__intcounter + 1) % self.__preverr.size
 
                     self.__controller.set(error * self._Pfac + self.__integralsum * self._Ifac + (
-                                error - self.__pasterr) * self._Dfac + self._FFfac)
+                                error - self.__preverr[self.__intcounter]) * self._Dfac + self._FFfac)
 
                     condit = fabs(error) > self.__threshold
                     counter = (counter + 1) if not condit else 0
-
                     self.__integralsum += error
-                    self.__pasterr = error
+                    self.__integralsum -= self.__preverr[(self.__intcounter + 1) % self.__preverr.size]
+                    self.__preverr[self.__intcounter] = error
                 if not condit and counter > self.waitThresh:
                     self.__achieved = True
                     if self.__noContinue:
@@ -112,6 +130,9 @@ class PIDManager(Thread):
 
     def reset(self):
         with self.mutex:
+            self.__intcounter = 0
+            for val in range(0, self.__preverr.size):
+                self.__preverr[val] = 0
             self.__integralsum = 0
             self.__pasterr = 0
             self.__achieved = False

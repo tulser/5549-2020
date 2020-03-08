@@ -10,6 +10,15 @@ __all__ = ["Shooter"]
 
 SHOOTERTOLERANCE = 30
 
+UP_P = 0.25
+UP_I = 0.04
+UP_D = 0.02
+UP_F = 1
+
+DN_P = 0.2
+DN_I = 0.04
+DN_D = 0.02
+DN_F = 1
 
 class Shooter(ActiveBase):
     __active = False
@@ -40,8 +49,8 @@ class Shooter(ActiveBase):
         cls.__motorsUp = SpeedControllerGroup(cls.__encoderTop, WPI_VictorSPX(6))
         cls.__motorsDown = SpeedControllerGroup(cls.__encoderBot, WPI_VictorSPX(8))
 
-        cls.__pidUp = PIDManager(cls.__motorsUp, 0, 0.1, 0.005, 0, 0, cls.__encoderTop, cls.__encoderBot)
-        cls.__pidDown = PIDManager(cls.__motorsDown, 0, 0.1, 0.005, 0, 0, cls.__encoderTop, cls.__encoderBot)
+        cls.__pidUp = PIDManager(cls.__motorsUp, 0, UP_P, UP_I, UP_D, UP_F, cls.__encoderTop, cls.__encoderBot)
+        cls.__pidDown = PIDManager(cls.__motorsDown, 0, DN_P, DN_I, DN_D, DN_F, cls.__encoderTop, cls.__encoderBot)
 
         cls.__pidUp.setTolerance(SHOOTERTOLERANCE)
         cls.__pidDown.setTolerance(SHOOTERTOLERANCE)
@@ -97,10 +106,8 @@ class Shooter(ActiveBase):
         cls.__encoderTop.setSelectedSensorPosition(0)
         cls.__encoderBot.setSelectedSensorPosition(0)
 
-        target = sqrt(-9.81 * pow(dist, 2) / (TARGETHEIGHT - 0.5461 + TARGETHEIGHTBIAS - dist)) * 12832.661368899589
-
         # automatically shoot balls given distance
-        cls.shootBoth(target)
+        cls.shootBoth(sqrt(-9.81 * pow(dist, 2) / (TARGETHEIGHT - 0.5461 + TARGETHEIGHTBIAS - dist)) * 12832.661368899589)
         return True
 
     @classmethod
